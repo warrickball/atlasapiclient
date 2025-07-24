@@ -19,6 +19,8 @@ from functools import cached_property
 import warnings
 from abc import ABC
 import logging
+import time
+import random
 
 import requests
 import numpy as np
@@ -495,86 +497,55 @@ class RequestSingleSourceData(APIClient):
 class RequestMultipleSourceData(APIClient):
     def __init__(self,
                  array_ids: np.array = None,
-                 mjdthreshold = None,
+                 mjdthreshold=None,
                  api_config_file: str = None,
+                 chunk_size: int = 100,
                  **kwargs,
                  ):
-        """READ - Request data for multiple sources. Contains a convenience
-        method to chunk the request in groups of 100 so don't get timed out by the server.
-
-        Parameters
-        ----------
-        array_ids:
-            The ATLAS\_IDs. Can be an array a list or a tuple.
-        mjdthreshold;
-            The Lower MJD threshold (we don't have a higher one yet)
-        api_config_file:
-            By default will use you api_config_MINE.yaml file.
-        """
         super().__init__(api_config_file, **kwargs)
 
-        # ATLAS_ID ARRAY - CHECK VALIDITY AND ASSIGN
-        assert array_ids is not None, "You need to provide an array of object IDs"          # Check not None
-        # TODO: Checking that the array is a numpy array might not be necessary, 
-        # we can convert pretty easily beforehand. Also we don't seem to be using
-        # any numpy features here, the ints are all converted to strings anyway?
-        assert isinstance(array_ids, np.ndarray), "array_ids must be a numpy array"         # check is a numpy array
-        assert len(array_ids) > 0, "array_ids must not be empty"                            # check is not empty
-        self.array_ids = np.array([self.parse_atlas_id(str(x)) for x in array_ids])         # check each element is valid
+        assert array_ids is not None, "You need to provide an array of object IDs"
+        assert isinstance(array_ids, np.ndarray), "array_ids must be a numpy array"
+        assert len(array_ids) > 0, "array_ids must not be empty"
 
-        # MJD THRESHOLD AND URL - ASSIGN
+        self.array_ids = np.array([self.parse_atlas_id(str(x)) for x in array_ids])
         self.mjdthreshold = mjdthreshold
-        self.url=  "objects/"
-        self.url = self.apiURL + self.url
-
-        # INITIALIZE RESPONSE AS A LIST
+        self.url = self.apiURL + "objects/"
         self.response_data = []
+        self.chunk_size = chunk_size  # NEW: assign chunk size
 
-    def chunk_get_response_quiet(self):
-        """Chunks the request in groups of 100 so don't get timed out by the server.
-        Does not print out a progress bar.
+    def _run_chunked_requests(self, chunks, show_progress=False, max_retries=3, backoff_range=(1, 5)):
+        iterable = tqdm(chunks) if show_progress else chunks
 
-        Notes
-        ------
-        This is typically used in production to avoid spamming the logs.
-
-        Returns
-        -------
-        None
-        """
-        # Split array_ids into chunks of 100
-        chunks = [self.array_ids[i:i + 100] for i in range(0, len(self.array_ids), 100)]
-
-        # Iterate over each chunk and make separate requests
-        for chunk in chunks:
+        for idx, chunk in enumerate(iterable):
             array_ids_str = ','.join(map(str, chunk))
-            self.payload = {'objects': array_ids_str,
-                            'mjd': self.mjdthreshold
-                           }
+            self.payload = {'objects': array_ids_str, 'mjd': self.mjdthreshold}
 
-            _response = self.get_response(inplace=False)
-            self.response_data.extend(_response)
+            attempt = 0
+            while attempt < max_retries:
+                try:
+                    _response = self.get_response(inplace=False)
+                    self.response_data.extend(_response)
+                    break  # success
+                except Exception as e:
+                    attempt += 1
+                    wait = random.uniform(*backoff_range)
+                    logging.warning(
+                        f"[Chunk {idx+1}/{len(chunks)}] Retry {attempt}/{max_retries} due to error: {e}. Backing off {wait:.2f}s"
+                    )
+                    time.sleep(wait)
+            else:
+                logging.error(f"[Chunk {idx+1}/{len(chunks)}] Failed after {max_retries} retries. Skipping.")
 
-    def chunk_get_response(self):
-        """Chunks the request in groups of 100 so don't get timed out by the server.
-        Prints out a progress bar.
+    def chunk_get_response_quiet(self, max_retries=3, backoff_range=(1, 5)):
+        chunks = [self.array_ids[i:i + self.chunk_size] for i in range(0, len(self.array_ids), self.chunk_size)]
+        self.response_data = []
+        self._run_chunked_requests(chunks, show_progress=False, max_retries=max_retries, backoff_range=backoff_range)
 
-        Notes
-        ------
-        This is typically used in human scripts and notebooks to see how long it'll take.
-        """
-        # Split array_ids into chunks of 100
-        chunks = [self.array_ids[i:i + 100] for i in range(0, len(self.array_ids), 100)]
-
-        # Iterate over each chunk and make separate requests
-        for chunk in tqdm(chunks):
-            array_ids_str = ','.join(map(str, chunk))
-            self.payload = {'objects': array_ids_str,
-                            'mjd': self.mjdthreshold
-                           }
-
-            _response = self.get_response(inplace=False)
-            self.response_data.extend(_response)
+    def chunk_get_response(self, max_retries=3, backoff_range=(1, 5)):
+        chunks = [self.array_ids[i:i + self.chunk_size] for i in range(0, len(self.array_ids), self.chunk_size)]
+        self.response_data = []
+        self._run_chunked_requests(chunks, show_progress=True, max_retries=max_retries, backoff_range=backoff_range)
 
     def save_response_to_json(self, output_dir=None):
         """Saves the response to INDIVIDUAL text files with the name [ATLAS\_ID].json.
@@ -776,50 +747,64 @@ class RemoveFromCustomList(APIClient):
                  list_name: str = None,
                  get_response: bool = False,
                  api_config_file: str = None,
+                 chunk_size: int = 100,  # NEW: chunk size parameter
                  **kwargs,
                  ):
-        """WRITE - Remove  ATLAS\_IDs from a custom list
+        """
+        WRITE - Remove ATLAS_IDs from a custom list.
 
         Parameters
-        ------------
+        ----------
         array_ids: np.array, list, tuple
             The ATLAS IDs. Can be an array a list or a tuple.
         list_name: str
-            The name of the list you want (NOT THE NUMBER). e.g.  'mookodi'.
+            The name of the list you want (NOT THE NUMBER). e.g. 'mookodi'.
         get_response: bool
-            If True, will get the response on instanciation
+            If True, will get the response on instantiation.
         api_config_file: str
-            By default will use you api_config_MINE.yaml file.
+            Optional path to your API config file.
+        chunk_size: int
+            Max number of IDs per chunk. Default is 100.
         """
         super().__init__(api_config_file, **kwargs)
         self.url = self.apiURL + 'objectgroupsdelete/'
         self.array_ids = array_ids
-        self.object_group_id = self.dict_list_id[list_name][0] # object group id is the number of the custom list
+        self.chunk_size = chunk_size  # NEW: store chunk size
+        self.object_group_id = self.dict_list_id[list_name][0]
+        self.response_data = []
 
-        # if self.array_ids smaller than 100 we can just create the payload and use get_response from ATLASAPIBase
-        # if self.array_ids is larger than 100 we need to call chunk_get_response(_quiet)
-        if self.array_ids.shape[0] > 100:
+        if self.array_ids.shape[0] > self.chunk_size:
             self.chunk_get_response_quiet()
         else:
-            self.payload = {'objectid': ','.join(map(str, self.array_ids)),
-                            'objectgroupid': self.object_group_id
-                           }
+            self.payload = {
+                'objectid': ','.join(map(str, self.array_ids)),
+                'objectgroupid': self.object_group_id
+            }
 
+    def chunk_get_response_quiet(self, max_retries=3, backoff_range=(1, 5)):
+        chunks = [self.array_ids[i:i + self.chunk_size]
+                  for i in range(0, len(self.array_ids), self.chunk_size)]
+        self.response_data = []
 
-    def chunk_get_response_quiet(self):
-        """Chunks the request in groups of 100 so don't get timed out by the server. No progress bar."""
-        # Split array_ids into chunks of 100
-        chunks = [self.array_ids[i:i + 100] for i in range(0, len(self.array_ids), 100)]
-
-        # Iterate over each chunk and make separate requests
-        for chunk in chunks:
+        for idx, chunk in enumerate(chunks):
             array_ids_str = ','.join(map(str, chunk))
-            self.payload = {'objectid': array_ids_str,
-                            'objectgroupid': self.object_group_id
-                           }
+            self.payload = {'objectid': array_ids_str, 'objectgroupid': self.object_group_id}
 
-            _response = self.get_response(inplace=False)
-            self.response_data.extend(_response)
+            attempt = 0
+            while attempt < max_retries:
+                try:
+                    _response = self.get_response(inplace=False)
+                    self.response_data.extend(_response)
+                    break
+                except Exception as e:
+                    attempt += 1
+                    wait_time = random.uniform(*backoff_range)
+                    logging.warning(
+                        f"[Chunk {idx+1}/{len(chunks)}] Retry {attempt}/{max_retries} after error: {e}. Sleeping {wait_time:.2f}s...")
+                    time.sleep(wait_time)
+            else:
+                logging.error(
+                    f"[Chunk {idx+1}/{len(chunks)}] Failed after {max_retries} retries. Chunk skipped.")
 
 class WriteObjectDetectionListNumber(APIClient):
     def __init__(self,
