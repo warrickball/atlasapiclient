@@ -563,9 +563,9 @@ class RequestMultipleSourceData(APIClient):
         assert output_dir is not None, "You need to provide an output directory"
         assert self.response is not None, "You need to run get_response() before saving"
 
-        for i in tqdm(range(len(self.response))):
-            with open(f"{output_dir}{str(self.response[i]['object']['id'])}.json", "w") as outfile:
-                json.dump(self.response[i], outfile)
+        for i in tqdm(range(len(self.response_data))):
+            with open(f"{output_dir}{str(self.response_data[i]['object']['id'])}.json", "w") as outfile:
+                json.dump(self.response_data[i], outfile)
 
 
 
