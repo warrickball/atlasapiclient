@@ -214,4 +214,7 @@ Please cite this DOI in your TNS reports and papers if you used our code, and th
 
 [![DOI](https://zenodo.org/badge/804295497.svg)](https://doi.org/10.5281/zenodo.14331062)
 
-
+## Contributing Authors:
+Heloise Stevance (@heloises) is the original developer for the ATLAS API Client main functionalities and project manageer for the API Client. 
+Jack Leland (@jackleland) added nearly all of the testing, set up the github workflows and refactored some core functiinalities to allow long term maintainability and testing. He also created a development environment for the ATLAS web server without which testing of the API Client would have been much more difficult. 
+Ken Smith (@genghisken) is the ATLAS Transient Web Server admin and the author of the ATLAS API (see [psat-server-web](https://github.com/genghisken/psat-server-web/tree/master/psat_server_web)). He advised in the development of the client. 
