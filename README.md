@@ -28,19 +28,7 @@ submitted in the form.
 Once you have been granted access you will receive an email with your username and
 a **one-time use password** which you will have to change on your first login.
 
-Once you have access to the web server you can get a token for API access by using the 
-``APIClient.refresh_token() method``. 
-This will generate a token for you and save it in the config file defined within the ``API_CONFIG_FILE`` 
-variable in the ``atlasapiclient/utils.py file``. 
-
-For example:
-```python   
-from atlasapiclient import client as atlasapiclient
-
-client = atlasapiclient.APIClient()
-client.refresh_token()
-```
-
+Once you have access to the web server you will be able to request a token (see below for details).
 
 ### Help I forgot my password!
 The server doesn't store your email address so it can't send you an email to reset the password.
@@ -66,18 +54,28 @@ git clone git@github.com:HeloiseS/atlasapiclient.git
 ```
 
 ### Configuration
-The client requires a config ile that contains the base url of the ATLAS transient web servers and your token for the ATLAS API.
-In the directory `atlasapiclient/config_files` you will find the `api_config_template.yaml` file.
+The client requires a config ile that contains the base url of the ATLAS transient web servers and your token for the ATLAS API.  
+In the directory `atlasapiclient/config_files` you will find the `api_config_template.yaml` file.  
 1) Copy it **in the same directory** to a file named `api_config_MINE.yaml`. **YES - THE NAME MATTERS**
+
 ```
 cd atlasapiclient/config_files
 cp api_config_template.yaml api_config_MINE.yaml
 ```
-2) Update your token (if you don't have a token see below)
-3) Update the url to "https://psweb.mp.qub.ac.uk/sne/atlas4/api/"
 
+2) Update the url to "https://psweb.mp.qub.ac.uk/sne/atlas4/api/".  
+3) Update your token (if you don't have a token see below).  
+You can get a token for API access by using the 
+``APIClient.refresh_token() method``.  
+This will generate a token for you and save it in the config file.  
+For example:
 
+```python   
+from atlasapiclient import client as atlasapiclient
 
+client = atlasapiclient.APIClient()
+client.refresh_token()
+```
 
 ## Cheat sheet
 
