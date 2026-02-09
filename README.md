@@ -64,7 +64,7 @@ pip install --user atlasapiclient
 
 * **Clone the repo**
 
-Whereever you keep your personal software on your computer, run the command:
+Wherever you keep your personal software on your computer, run the command:
 
 ```
 git clone git@github.com:HeloiseS/atlasapiclient.git
@@ -85,7 +85,7 @@ atlasapiclient.__path__()
 ```
 
 
-1) Copy it **in the same directory** to a file named `api_config_MINE.yaml`. **YES - THE NAME MATTERS**
+1) Copy `api_config_template.yaml`  **in the same directory** to a file named `api_config_MINE.yaml`. **YES - THE NAME MATTERS**
 
 ```
 cd atlasapiclient/config_files
