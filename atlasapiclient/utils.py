@@ -1,12 +1,12 @@
-import pkg_resources
 import os
 import urllib
-
+from pathlib import Path
 from .exceptions import ATLASAPIClientError 
 
 # Useful Constants
 LIST_NAMES = "follow_up, good, possible, eyeball, attic, cv, mdwarf, pm_stars"
-config_path = pkg_resources.resource_filename('atlasapiclient', 'config_files')
+config_path = Path(__file__).parent / 'config_files'
+
 # NOTE: We might want to consider changing the name of the config file
 API_CONFIG_FILE = os.path.join(config_path,'api_config_MINE.yaml')
 dict_list_id = {'garbage': [0, False],
