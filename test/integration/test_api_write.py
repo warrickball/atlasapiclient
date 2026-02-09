@@ -1,7 +1,6 @@
 """
 These tests only work if you have a token for the ATLAS api. 
 """
-import pkg_resources
 
 import pytest
 import numpy as np

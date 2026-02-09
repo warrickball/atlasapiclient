@@ -24,9 +24,7 @@ import random
 
 import requests
 import numpy as np
-from pkg_resources import non_empty_lines
 from tqdm import tqdm
-import pandas as pd
 
 from atlasapiclient.exceptions import (
     ATLASAPIClientError, 
