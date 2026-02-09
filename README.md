@@ -28,7 +28,19 @@ submitted in the form.
 Once you have been granted access you will receive an email with your username and
 a **one-time use password** which you will have to change on your first login.
 
-Once you have access to the web server you will be able to request a token (see below for details).
+
+Once you have access to the web server you can get a token for API access by using the 
+``APIClient.refresh_token() method``. 
+This will generate a token for you and save it in the config file defined within the ``API_CONFIG_FILE`` 
+variable in the ``atlasapiclient/utils.py file``. 
+
+For example:
+```python   
+from atlasapiclient import client as atlasapi
+
+client = atlasapiclient.APIClient()
+client.refresh_token()
+```
 
 ### Help I forgot my password!
 The server doesn't store your email address so it can't send you an email to reset the password.
@@ -82,9 +94,9 @@ client.refresh_token()
 ### Cone Search
 
 ``` python
-from atlasapiclient import client as atlasapiclient
+from atlasapiclient import client as atlasapi
 
-client = atlasapiclient.ConeSearch(payload={'ra': 150,
+client = atlasapi.ConeSearch(payload={'ra': 150,
                                             'dec': 60,
                                             'radius': 60,
                                             'requestType': 'nearest'},
@@ -97,10 +109,10 @@ client = atlasapiclient.ConeSearch(payload={'ra': 150,
 To get the data:
 
 ```python
-from atlasapiclient import client as atlasapiclient
+from atlasapiclient import client as atlasapi
 
 atlas_id = '1161600211221604900'
-client = atlasapiclient.RequestSingleSourceData(atlas_id=atlas_id, get_response=True)
+client = atlasapi.RequestSingleSourceData(atlas_id=atlas_id, get_response=True)
 ```
 
 To extract the light curve data from the JSON:
@@ -149,9 +161,9 @@ ax.legend()
 ### Data for Multiple Objects
 
 ```python
-from atlasapiclient import client as atlasapiclient
+from atlasapiclient import client as atlasapi
 
-client = atlasapiclient.RequestMultipleSourceData(array_ids=YOUR_LIST_OF_IDS, mjdthreshold = LOWER_MJD_THRESHOLD)
+client = atlasapi.RequestMultipleSourceData(array_ids=YOUR_LIST_OF_IDS, mjdthreshold = LOWER_MJD_THRESHOLD)
 client.chunk_get_response() # Chunks the list of IDs into a bunch of payloads and colates the responses.
 ```
 
