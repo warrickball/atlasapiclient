@@ -7,7 +7,7 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'ATLAS API Client'
-copyright = '2024, Heloise Stevance'
+copyright = '2026, Heloise Stevance'
 author = 'Heloise Stevance'
 
 import os
@@ -35,3 +35,7 @@ exclude_patterns = []
 html_theme = 'sphinx_book_theme'
 html_static_path = ['_static']
 html_logo='_static/logo.png'
+html_theme_options = {"**": ["sbt-sidebar-nav.html"],
+  "show_toc_level": 4,
+  "show_navbar_depth": 4,
+}
