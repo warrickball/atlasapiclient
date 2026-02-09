@@ -1,6 +1,5 @@
 # Write tests for the functions in atlasapiclient.client
 import os
-from yaml.scanner import ScannerError
 
 import pytest
 import requests

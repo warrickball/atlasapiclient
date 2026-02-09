@@ -94,9 +94,9 @@ class Token():
             if 'non_field_errors' in response_data:
                 raise ATLASAPIClientAuthError(f"Failed to refresh token: {response_data['non_field_errors']}")
             elif 'username' in response_data:
-                raise ATLASAPIClientAuthError(f"Failed to refresh token: no username was provided")
+                raise ATLASAPIClientAuthError("Failed to refresh token: no username was provided")
             elif 'password' in response_data:
-                raise ATLASAPIClientAuthError(f"Failed to refresh token: no password was provided")
+                raise ATLASAPIClientAuthError("Failed to refresh token: no password was provided")
             else:
                 raise ATLASAPIClientAuthError(f"Failed to refresh token, unspecified 400 error: {response_data}")
         else:
