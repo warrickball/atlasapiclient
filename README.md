@@ -55,19 +55,36 @@ Here is a little cheat sheet with just some code.
 
 ## Install and config
 
-### Pypi
+### Either Pypi or clone the repo
+
+* **Pypi**
 ```
 pip install --user atlasapiclient
 ```
 
-### Clone Github
+* **Clone the repo**
+
+Whereever you keep your personal software on your computer, run the command:
+
 ```
 git clone git@github.com:HeloiseS/atlasapiclient.git
 ```
 
+Then add it to your python path in your ``.bashrc``/``.bash_profile`` (or whatever equivalent for your shell.)
+
 ### Configuration
 The client requires a config ile that contains the base url of the ATLAS transient web servers and your token for the ATLAS API.  
 In the directory `atlasapiclient/config_files` you will find the `api_config_template.yaml` file.  
+
+_If you pip installed, you'll need to find the location of `atlasapiclient` first, which you can do by starting your python interpreter and doing_
+
+```python
+import atlasapiclient
+
+atlasapiclient.__path__()
+```
+
+
 1) Copy it **in the same directory** to a file named `api_config_MINE.yaml`. **YES - THE NAME MATTERS**
 
 ```
