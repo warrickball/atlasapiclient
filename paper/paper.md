@@ -51,14 +51,14 @@ to help connect bots and scientists to our data.
 It provides a class-based interface to all the read-write utilities of the API and
 abstracts away the endpoint URLs and the token management.
 The `atlasapiclient` was initially designed to be used in our transient 
-stream processing pipeline, particularly for the ATLAS Virtual Research Assistant [@heloise_2025vra],
+stream processing pipeline, particularly for the ATLAS Virtual Research Assistant [@vra2025paper] [@heloise_2025vra] ,
 but it can now also be used to connect 
 other astronomy projects to the ATLAS data and its stream. 
 It is currently allowing the follow-up of ATLAS alerts by the Mookodi telescope
 in the South African Astronomical Observatory [@erasmus2024spie], which has allowed automated triggering
-and classification of transients within 100 Mpc (e.g. [@class2025arc], [@class2025cy]), since early 2025.
+and classification of transients within 100 Mpc - e.g. [@class2025arc], [@class2025cy]-, since early 2025.
 In the future this will allow us to connect our stream to other surveys and 
-follow-up facilities (e.g. [@soxs])
+follow-up facilities, e.g. [@soxs].
 
 We expect the API to evolve over time which could break the production codes 
 that connect to the ATLAS servers.
